@@ -24,16 +24,8 @@ diagonal, line_thickness = None, None
 # Initialize numpy random generator
 np.random.seed(int(time.time()))
 
-# Set video to load
-videos = []
-for file_name in os.listdir('videos'):
-    file_name = 'videos/' + file_name
-    if os.path.isfile(file_name) and file_name.endswith('.mp4'):
-        videos.append(file_name)
-source_path = videos[np.random.randint(len(videos))]
-
-# Create a video capture object to read videos
-cap = cv.VideoCapture(source_path)
+# Open the webcam
+cap = cv.VideoCapture(0)
 
 # Initialize face detector
 if (face_detector_kind == 'haar'):
@@ -81,13 +73,7 @@ def calculateParameters(height_orig, width_orig):
     diagonal = math.sqrt(height * height + width * width)
     # Calculate line thickness to draw boxes
     line_thickness = max(1, int(diagonal / 150))
-    # Initialize output video writer
-    global out
-    fps = cap.get(cv.CAP_PROP_FPS)
-    fourcc = cv.VideoWriter_fourcc(*'XVID')
-    out = cv.VideoWriter('video.avi', fourcc=fourcc, fps=fps, frameSize=(width, height))
 
-    
 def findFaces(img, confidence_threshold=0.7):
     # Get original width and height
     height = img.shape[0]
@@ -131,7 +117,6 @@ def findFaces(img, confidence_threshold=0.7):
 
     return face_boxes
 
-
 def collectFaces(frame, face_boxes):
     faces = []
     # Process faces
@@ -151,7 +136,6 @@ def collectFaces(frame, face_boxes):
         ]
         faces.append(face_bgr)
     return faces
-
 
 def predictAgeGender(faces):
     if (age_gender_kind == 'ssrnet'):
@@ -220,11 +204,8 @@ while cap.isOpened():
                        fontScale=1, color=(0, 64, 255), thickness=1, lineType=cv.LINE_AA)
 
     # Show frames
-    cv.imshow('Source', frame_bgr)
+    # cv.imshow('Source', frame_bgr)
     cv.imshow('Faces', faces_bgr)
-    
-    # Write output frame
-    out.write(faces_bgr)
     
     # Quit on ESC button, pause on SPACE
     key = (cv.waitKey(1 if (not paused) else 0) & 0xFF)
@@ -235,5 +216,5 @@ while cap.isOpened():
     sleep(0.001)
     
 cap.release()
-out.release()
 cv.destroyAllWindows()
+
